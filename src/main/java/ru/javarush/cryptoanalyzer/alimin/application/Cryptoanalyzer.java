@@ -124,7 +124,11 @@ public class Cryptoanalyzer {
             lastPart = Path.of(cipherMode + path.getFileName());
         } else {
             cipherMode = "Decrypted";
-            lastPart = Path.of(path.getFileName().toString().replace("Encrypted", cipherMode));
+            if (path.getFileName().toString().contains("Encrypted")) {
+                lastPart = Path.of(path.getFileName().toString().replace("Encrypted", cipherMode));
+            } else {
+                lastPart = Path.of(cipherMode + path.getFileName());
+            }
         }
         Path newPath = path.getParent().resolve(lastPart);
         if (paths.contains(newPath)) {
