@@ -13,17 +13,16 @@ import java.util.TreeMap;
 import static java.nio.file.StandardOpenOption.APPEND;
 
 public class Cryptoanalyzer {
-    private final List<Path> encryptedPaths = new ArrayList<>();
+    private final List<Path> paths = new ArrayList<>();
     public void encrypt(Path path, int key) {
         key = keyVerification(key);
         try {
-            Path encryptedFile = createNewPath(path);
+            Path encryptedFile = createNewPath(path, true);
             Files.createFile(encryptedFile);
             for (String line : readLinesFromFile(path)) {
                 String encryptedString = toCipher(line, key);
                 Files.writeString(encryptedFile, encryptedString + "\n", APPEND);
             }
-            encryptedPaths.add(encryptedFile);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -31,9 +30,16 @@ public class Cryptoanalyzer {
 
     public void decrypt(Path path, int key) {
         key = keyVerification(key);
-        for (String line : readLinesFromFile(path)) {
-            String decryptedString = toDecipher(line, key);
-            System.out.println(decryptedString);
+        try {
+            Path decryptedFile = createNewPath(path, false);
+            Files.createFile(decryptedFile);
+            for (String line : readLinesFromFile(path)) {
+                String decryptedString = toDecipher(line, key);
+                System.out.println(decryptedString);
+                Files.writeString(decryptedFile, decryptedString + "\n", APPEND);
+            }
+        } catch (Exception e) {
+            throw new RuntimeException(e);
         }
     }
 
@@ -110,17 +116,26 @@ public class Cryptoanalyzer {
         return key;
     }
 
-    private Path createNewPath(Path path) {
-        Path lastPart = Path.of("Encrypted" + path.getFileName());
+    private Path createNewPath(Path path, boolean encrypting) {
+        String cipherMode;
+        Path lastPart;
+        if (encrypting) {
+            cipherMode = "Encrypted";
+            lastPart = Path.of(cipherMode + path.getFileName());
+        } else {
+            cipherMode = "Decrypted";
+            lastPart = Path.of(path.getFileName().toString().replace("Encrypted", cipherMode));
+        }
         Path newPath = path.getParent().resolve(lastPart);
-        if (encryptedPaths.contains(newPath)) {
+        if (paths.contains(newPath)) {
             int count = 1;
-            while (encryptedPaths.contains(newPath)) {
-                Path uniquePath = Path.of("Encrypted" + count + path.getFileName());
+            while (paths.contains(newPath)) {
+                Path uniquePath = Path.of(cipherMode + count + path.getFileName().toString().replace("Encrypted", ""));
                 count++;
                 newPath = path.getParent().resolve(uniquePath);
             }
         }
+        paths.add(newPath);
         return newPath;
     }
 
