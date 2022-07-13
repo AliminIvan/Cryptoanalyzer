@@ -5,15 +5,13 @@ import ru.javarush.cryptoanalyzer.alimin.constants.Alphabet;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.TreeMap;
+import java.util.*;
 
 import static java.nio.file.StandardOpenOption.APPEND;
 
 public class Cryptoanalyzer {
     private final List<Path> paths = new ArrayList<>();
+
     public void encrypt(Path path, int key) {
         key = keyVerification(key);
         try {
@@ -46,25 +44,48 @@ public class Cryptoanalyzer {
     public void bruteForceHack(Path path) {
         List<String> encryptedLines = readLinesFromFile(path);
         List<String> decryptedWords;
-        for (int j = 1; j < Alphabet.ALPHABET_LENGTH; j++) {
-            decryptedWords = getDecryptedWords(encryptedLines, j);
-            if (fileIsDecrypted(decryptedWords)) {
-                decrypt(path, j);
-                System.out.println("*".repeat(100));
-                System.out.println("Ключ к зашифрованному файлу: " + j);
-                break;
+        Map<Integer, Integer> possibleKeysCounter = new HashMap<>();
+        int counter = 0;
+        int key = 0;
+        for (int i = 1; i < Alphabet.ALPHABET_LENGTH; i++) {
+            decryptedWords = getDecryptedWords(encryptedLines, i);
+            for (int j = 0; j < Alphabet.VOCABULARY.length; j++) {
+                if (decryptedWords.contains(Alphabet.VOCABULARY[j])) {
+                    counter++;
+                }
+            }
+            possibleKeysCounter.put(i, counter);
+            counter = 0;
+        }
+
+        Map.Entry<Integer, Integer> maxEntry = null;
+        for (Map.Entry<Integer, Integer> entry : possibleKeysCounter.entrySet()) {
+            if (maxEntry == null || entry.getValue().compareTo(maxEntry.getValue()) > 0) {
+                maxEntry = entry;
             }
         }
+        if (maxEntry != null) {
+            key = maxEntry.getKey();
+        }
+        decrypt(path, key);
+        System.out.println("*".repeat(100));
+        System.out.println("Ключ к зашифрованному файлу: " + key);
     }
 
     public void frequencyHack(Path path) {
         int key = 0;
-        Map.Entry<Character, Integer> mostRepeatedCharInFile = maxRepeatedChar(path);
+        Map.Entry<Character, Integer> entry = maxRepeatedChar(path);
+        char mostRepeatedCharInFile = entry.getKey();
         List<String> encryptedLines = readLinesFromFile(path);
         List<String> decryptedWords;
         for (int i = 0; i < Alphabet.MOST_POPULAR_CHARS.length; i++) {
             char mostPopularChar = Alphabet.MOST_POPULAR_CHARS[i];
-            key = Math.abs(Alphabet.LOWERCASE_LETTERS.indexOf(mostPopularChar) - Alphabet.LOWERCASE_LETTERS.indexOf(mostRepeatedCharInFile.getKey()));
+            if (mostRepeatedCharInFile > mostPopularChar) {
+                key = Math.abs(Alphabet.LOWERCASE_LETTERS.indexOf(mostPopularChar) - Alphabet.LOWERCASE_LETTERS.indexOf(mostRepeatedCharInFile));
+            } else {
+                key = Math.abs(Alphabet.LOWERCASE_LETTERS.indexOf(mostPopularChar) - Alphabet.LOWERCASE_LETTERS.indexOf('я') -
+                        Alphabet.LOWERCASE_LETTERS.indexOf(mostRepeatedCharInFile) - 1);
+            }
             decryptedWords = getDecryptedWords(encryptedLines, key);
             if (fileIsDecrypted(decryptedWords)) {
                 break;
@@ -83,10 +104,11 @@ public class Cryptoanalyzer {
         }
     }
 
+
     private List<String> getDecryptedWords(List<String> encryptedLines, int key) {
         List<String> decryptedWords = new ArrayList<>();
         for (String encryptedLine : encryptedLines) {
-            String line = toDecipher(encryptedLine, key).replaceAll("[^A-Za-zА-Яа-я ]", "");
+            String line = toDecipher(encryptedLine, key).replaceAll("[^A-Za-zА-Яа-я ]", " ");
             String[] words = line.split(" ");
             for (String word : words) {
                 decryptedWords.add(word.toLowerCase());
@@ -153,7 +175,9 @@ public class Cryptoanalyzer {
 
     private String toCipher(String line, int key) {
         int punctuationKey = key;
-        if (key > Alphabet.PUNCTUATION.length()) {
+        if (key == Alphabet.ALPHABET_LENGTH) {
+            punctuationKey = Alphabet.PUNCTUATION.length();
+        } else if (key > Alphabet.PUNCTUATION.length()) {
             punctuationKey = key % Alphabet.PUNCTUATION.length();
         }
         StringBuilder builder = new StringBuilder(line.length());
