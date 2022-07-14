@@ -43,7 +43,7 @@ public class Cryptoanalyzer {
 
     public void bruteForceHack(Path path) {
         List<String> encryptedLines = readLinesFromFile(path);
-        List<String> decryptedWords;
+        Set<String> decryptedWords;
         Map<Integer, Integer> possibleKeysCounter = new HashMap<>();
         int counter = 0;
         int key = 0;
@@ -77,7 +77,7 @@ public class Cryptoanalyzer {
         Map.Entry<Character, Integer> entry = maxRepeatedChar(path);
         char mostRepeatedCharInFile = entry.getKey();
         List<String> encryptedLines = readLinesFromFile(path);
-        List<String> decryptedWords;
+        Set<String> decryptedWords;
         for (int i = 0; i < Alphabet.MOST_POPULAR_CHARS.length; i++) {
             char mostPopularChar = Alphabet.MOST_POPULAR_CHARS[i];
             if (mostRepeatedCharInFile > mostPopularChar) {
@@ -104,9 +104,8 @@ public class Cryptoanalyzer {
         }
     }
 
-
-    private List<String> getDecryptedWords(List<String> encryptedLines, int key) {
-        List<String> decryptedWords = new ArrayList<>();
+    private Set<String> getDecryptedWords(List<String> encryptedLines, int key) {
+        Set<String> decryptedWords = new HashSet<>();
         for (String encryptedLine : encryptedLines) {
             String line = toDecipher(encryptedLine, key).replaceAll("[^A-Za-zА-Яа-я ]", " ");
             String[] words = line.split(" ");
@@ -117,7 +116,7 @@ public class Cryptoanalyzer {
         return decryptedWords;
     }
 
-    private boolean fileIsDecrypted(List<String> decryptedWords) {
+    private boolean fileIsDecrypted(Set<String> decryptedWords) {
         boolean result = false;
         for (int i = 0; i < Alphabet.VOCABULARY.length; i++) {
             if (decryptedWords.contains(Alphabet.VOCABULARY[i])) {
