@@ -96,12 +96,91 @@ public class Cryptoanalyzer {
         System.out.println("Ключ к зашифрованному файлу: " + key);
     }
 
+    public void statisticalAnalysisHack(Path textExample, Path encryptedFile) {
+        Path decryptedFile = createNewPath(encryptedFile, false);
+        try {
+            Files.createFile(decryptedFile);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+        List<String> exampleLines = readLinesFromFile(textExample);
+        List<String> encryptedLines = readLinesFromFile(encryptedFile);
+        Map<Character, Integer> exampleLettersRepeatCount = countLettersRepeats(exampleLines);
+        Map<Character, Integer> encryptedLettersRepeatCount = countLettersRepeats(encryptedLines);
+        Map<Character, Character> decoder = new HashMap<>();
+        int exampleLettersQuantity = countAllLettersInFile(exampleLettersRepeatCount);
+        int encryptedLettersQuantity = countAllLettersInFile(encryptedLettersRepeatCount);
+
+        Map<Double, Character> exampleLettersRepeatPercent = getLettersRepeatPercent(exampleLettersRepeatCount, exampleLettersQuantity);
+        Map<Double, Character> encryptedLettersRepeatPercent = getLettersRepeatPercent(encryptedLettersRepeatCount, encryptedLettersQuantity);
+        List<Character> values = new ArrayList<>(encryptedLettersRepeatPercent.values());
+
+        char key;
+        char value;
+        int i = 0;
+        for (Map.Entry<Double, Character> entry : exampleLettersRepeatPercent.entrySet()) {
+            key = values.get(i);
+            value = entry.getValue();
+            decoder.put(key, value);
+            i++;
+        }
+
+        StringBuilder decryptedLine = new StringBuilder();
+        String encryptedLine;
+        for (String line : encryptedLines) {
+            encryptedLine = line;
+            for (int k = 0; k < encryptedLine.length(); k++) {
+                char letter = encryptedLine.charAt(k);
+                if (decoder.containsKey(Character.toLowerCase(letter))) {
+                    if (Character.isLowerCase(letter)) {
+                        decryptedLine.append(decoder.get(letter));
+                    } else {
+                        decryptedLine.append(Character.toUpperCase(decoder.get(Character.toLowerCase(letter))));
+                    }
+                } else {
+                    decryptedLine.append(letter);
+                }
+            }
+            System.out.println(decryptedLine);
+            try {
+                Files.writeString(decryptedFile, decryptedLine + "\n", APPEND);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+            decryptedLine.delete(0, decryptedLine.length());
+        }
+    }
+
     public void printAllPossibleOptions(Path path) {
         for (int i = 0; i < Alphabet.ALPHABET_LENGTH; i++) {
             System.out.println("Result for key " + i + ":");
             decrypt(path, i);
             System.out.println("*".repeat(100));
         }
+    }
+
+
+
+    //методы-утилиты
+
+    private Map<Double, Character> getLettersRepeatPercent(Map<Character, Integer> map, int allLettersCount) {
+        Map<Double, Character> fileLettersRepeatPercent = new TreeMap<>(Collections.reverseOrder());
+        double key;
+        char value;
+        for (Map.Entry<Character, Integer> entry : map.entrySet()) {
+            key = ((double) entry.getValue() / (double) allLettersCount) * 100.0;
+            value = entry.getKey();
+            fileLettersRepeatPercent.put(key, value);
+        }
+        return fileLettersRepeatPercent;
+    }
+
+    private int countAllLettersInFile(Map<Character, Integer> map) {
+        int lettersCount = 0;
+        for (Map.Entry<Character, Integer> entry : map.entrySet()) {
+            lettersCount += entry.getValue();
+        }
+        return lettersCount;
     }
 
     private Set<String> getDecryptedWords(List<String> encryptedLines, int key) {
@@ -236,7 +315,18 @@ public class Cryptoanalyzer {
 
     private Map.Entry<Character, Integer> maxRepeatedChar(Path path) {
         List<String> allLines = readLinesFromFile(path);
-        Map<Character, Integer> lettersRepeatCount = new TreeMap<>();
+        Map<Character, Integer> lettersRepeatCount = countLettersRepeats(allLines);
+        Map.Entry<Character, Integer> maxEntry = null;
+        for (Map.Entry<Character, Integer> entry : lettersRepeatCount.entrySet()) {
+            if (maxEntry == null || entry.getValue().compareTo(maxEntry.getValue()) > 0) {
+                maxEntry = entry;
+            }
+        }
+        return maxEntry;
+    }
+
+    private Map<Character, Integer> countLettersRepeats(List<String> allLines) {
+        TreeMap<Character, Integer> lettersRepeatCount = new TreeMap<>();
         int repeatCount;
         for (String line : allLines) {
             for (int j = 0; j < line.length(); j++) {
@@ -251,12 +341,6 @@ public class Cryptoanalyzer {
                 }
             }
         }
-        Map.Entry<Character, Integer> maxEntry = null;
-        for (Map.Entry<Character, Integer> entry : lettersRepeatCount.entrySet()) {
-            if (maxEntry == null || entry.getValue().compareTo(maxEntry.getValue()) > 0) {
-                maxEntry = entry;
-            }
-        }
-        return maxEntry;
+        return lettersRepeatCount;
     }
 }

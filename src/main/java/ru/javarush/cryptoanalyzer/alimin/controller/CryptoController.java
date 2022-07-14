@@ -8,7 +8,7 @@ import java.util.Scanner;
 
 public class CryptoController {
     private final Scanner scanner = new Scanner(System.in);
-    private final Cryptoanalyzer cryptanalyzer = new Cryptoanalyzer();
+    private final Cryptoanalyzer cryptoanalyzer = new Cryptoanalyzer();
 
     public void run() {
         Path path;
@@ -48,7 +48,7 @@ public class CryptoController {
                                         if (key.equals("q")) {
                                             break;
                                         }
-                                        cryptanalyzer.encrypt(path, Integer.parseInt(key));
+                                        cryptoanalyzer.encrypt(path, Integer.parseInt(key));
                                         System.out.println("Файл успешно зашифрован");
                                     } catch (NumberFormatException e) {
                                         System.out.println("Вы ввели недопустимое значение для ключа шифрования, пожалуйста введите любое неотрицательное целочисленное значение");
@@ -71,7 +71,7 @@ public class CryptoController {
                                     if (key.equals("q")) {
                                         break;
                                     }
-                                    cryptanalyzer.decrypt(path, Integer.parseInt(key));
+                                    cryptoanalyzer.decrypt(path, Integer.parseInt(key));
                                     System.out.println("Файл успешно расшифрован");
                                 }
                             }
@@ -84,7 +84,8 @@ public class CryptoController {
                                 Пожалуйста, выберите метод криптоанализа:
                                 1 - метод грубой силы (brute force)
                                 2 - метод частотного анализа
-                                3 - показать все возможные варианты расшифровки (для самостоятельного анализа)
+                                3 - метод статистического анализа
+                                4 - показать все возможные варианты расшифровки (для самостоятельного анализа)
                                 q - вернуться в главное меню
                                 """);
                         choice = scanner.next();
@@ -93,44 +94,53 @@ public class CryptoController {
                         }
                         switch (choice) {
                             case "1" -> {
-
                                 System.out.println("Пожалуйста введите путь к зашифрованному файлу, который необходимо взломать или введите q для возврата: ");
                                 choice = scanner.next();
                                 if (choice.equals("q")) {
                                     break;
                                 }
                                 path = Path.of(choice);
-                                cryptanalyzer.bruteForceHack(path);
-                                System.out.println("Если файл успешно расшифрован, введите 1, в противном случае введите 2 для вывода на экран всех возможных вариантов расшифровки текста и выбора правильного самостоятельно, для возврата введите q");
-                                choice = scanner.next();
-                                if (choice.equals("2")) {
-                                    cryptanalyzer.printAllPossibleOptions(path);
-                                }
+                                cryptoanalyzer.bruteForceHack(path);
+                                System.out.println();
                             }
-                            case "2" -> {
 
+                            case "2" -> {
                                 System.out.println("Пожалуйста введите путь к зашифрованному файлу, который необходимо взломать или введите q для возврата: ");
                                 choice = scanner.next();
                                 if (choice.equals("q")) {
                                     break;
                                 }
                                 path = Path.of(choice);
-                                cryptanalyzer.frequencyHack(path);
-                                System.out.println("Если файл успешно расшифрован, введите 1, в противном случае введите 2 для вывода на экран всех возможных вариантов расшифровки текста и выбора правильного самостоятельно, для возврата введите q");
-                                choice = scanner.next();
-                                if (choice.equals("2")) {
-                                    cryptanalyzer.printAllPossibleOptions(path);
-                                }
+                                cryptoanalyzer.frequencyHack(path);
+                                System.out.println();
                             }
 
                             case "3" -> {
+                                System.out.println("Пожалуйста введите путь к файлу с текстом который является примером текста что был зашифрован (например другой труд того же автора) или введите q для возврата: ");
+                                choice = scanner.next();
+                                if (choice.equals("q")) {
+                                    break;
+                                }
+                                Path exampleTextPath = Path.of(choice);
                                 System.out.println("Пожалуйста введите путь к зашифрованному файлу, который необходимо взломать или введите q для возврата: ");
                                 choice = scanner.next();
                                 if (choice.equals("q")) {
                                     break;
                                 }
                                 path = Path.of(choice);
-                                cryptanalyzer.printAllPossibleOptions(path);
+                                cryptoanalyzer.statisticalAnalysisHack(exampleTextPath, path);
+                                System.out.println();
+                            }
+
+                            case "4" -> {
+                                System.out.println("Пожалуйста введите путь к зашифрованному файлу, который необходимо взломать или введите q для возврата: ");
+                                choice = scanner.next();
+                                if (choice.equals("q")) {
+                                    break;
+                                }
+                                path = Path.of(choice);
+                                cryptoanalyzer.printAllPossibleOptions(path);
+                                System.out.println();
                             }
                         }
                     }
