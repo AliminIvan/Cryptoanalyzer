@@ -47,7 +47,7 @@ public class Cryptoanalyzer {
         Map<Integer, Integer> possibleKeysCounter = new HashMap<>();
         int counter = 0;
         int key = 0;
-        for (int i = 1; i < Alphabet.ALPHABET_LENGTH; i++) {
+        for (int i = 1; i <= Alphabet.ALPHABET_LENGTH; i++) {
             decryptedWords = getDecryptedWords(encryptedLines, i);
             for (int j = 0; j < Alphabet.VOCABULARY.length; j++) {
                 if (decryptedWords.contains(Alphabet.VOCABULARY[j])) {
@@ -80,7 +80,7 @@ public class Cryptoanalyzer {
         Set<String> decryptedWords;
         for (int i = 0; i < Alphabet.MOST_POPULAR_CHARS.length; i++) {
             char mostPopularChar = Alphabet.MOST_POPULAR_CHARS[i];
-            if (mostRepeatedCharInFile > mostPopularChar) {
+            if (mostRepeatedCharInFile > mostPopularChar && mostRepeatedCharInFile != 'ё') {
                 key = Math.abs(Alphabet.LOWERCASE_LETTERS.indexOf(mostPopularChar) - Alphabet.LOWERCASE_LETTERS.indexOf(mostRepeatedCharInFile));
             } else {
                 key = Math.abs(Alphabet.LOWERCASE_LETTERS.indexOf(mostPopularChar) - Alphabet.LOWERCASE_LETTERS.indexOf('я') -
@@ -283,7 +283,10 @@ public class Cryptoanalyzer {
 
     private String toDecipher(String line, int key) {
         int punctuationKey = key;
-        if (key > Alphabet.PUNCTUATION.length()) {
+        if (key == Alphabet.ALPHABET_LENGTH) {
+            punctuationKey = Alphabet.PUNCTUATION.length();
+        }
+        else if (key > Alphabet.PUNCTUATION.length()) {
             punctuationKey = key % Alphabet.PUNCTUATION.length();
         }
         StringBuilder builder = new StringBuilder();
