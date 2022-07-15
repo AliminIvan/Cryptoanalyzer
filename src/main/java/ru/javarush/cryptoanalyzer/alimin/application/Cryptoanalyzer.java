@@ -107,14 +107,14 @@ public class Cryptoanalyzer {
         List<String> encryptedLines = readLinesFromFile(encryptedFile);
         Map<Character, Integer> exampleLettersRepeatCount = countLettersRepeats(exampleLines);
         Map<Character, Integer> encryptedLettersRepeatCount = countLettersRepeats(encryptedLines);
-        Map<Character, Character> decoder = new HashMap<>();
         int exampleLettersQuantity = countAllLettersInFile(exampleLettersRepeatCount);
         int encryptedLettersQuantity = countAllLettersInFile(encryptedLettersRepeatCount);
 
         Map<Double, Character> exampleLettersRepeatPercent = getLettersRepeatPercent(exampleLettersRepeatCount, exampleLettersQuantity);
         Map<Double, Character> encryptedLettersRepeatPercent = getLettersRepeatPercent(encryptedLettersRepeatCount, encryptedLettersQuantity);
-        List<Character> values = new ArrayList<>(encryptedLettersRepeatPercent.values());
 
+        List<Character> values = new ArrayList<>(encryptedLettersRepeatPercent.values());
+        Map<Character, Character> decoder = new HashMap<>();
         char key;
         char value;
         int i = 0;
